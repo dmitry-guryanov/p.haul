@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+import logging
+import sys
+
+import phaul.args_parser
+import phaul.connection
+import phaul.iters
+import phaul.util
+
+# Usage idea
+# p.haul <type> <id> --fdrpc <fd> --fdmem <fd>
+#
+# p.haul work over existing connections specified via command line arguments
+# as file descriptors. Three arguments required - --fdrpc for rpc calls,
+# --fdmem for c/r images migration and --fdfs for disk migration. For testing
+# purposed p.haul-wrap helper script can be used which establish required
+# connections with target host and call p.haul or p.haul-service.
+#
+# E.g.
+# p.haul vz 100 --fdrpc 3 --fdmem 4 --fdfs root.hdd/root.hds:5
+# p.haul lxc myct --fdrpc 3 --fdmem 4
+#
+
+
+def main():
+	# Parse arguments
+	args = phaul.args_parser.parse_client_args()
+
+	# Configure logging
+	logging.basicConfig(filename=args.log_file, filemode="a", level=logging.INFO,
+		format="%(asctime)s.%(msecs)03d: %(process)d: %(message)s",
+		datefmt="%H:%M:%S")
+
+	# Setup hook to log uncaught exceptions
+	sys.excepthook = phaul.util.log_uncaught_exception
+
+	phaul.util.log_header()
+	logging.info("Starting p.haul")
+
+	# Establish connection
+	connection = phaul.connection.establish(args.fdrpc, args.fdmem, args.fdfs)
+
+	# Start the migration
+	ph_type = args.type, args.id
+	worker = phaul.iters.phaul_iter_worker(ph_type, args.dst_id, args.mode,
+		connection, args.nostart)
+	worker.set_options(vars(args))
+	worker.start_migration()
+
+	# Close connection
+	connection.close()
+
+if __name__ == "__main__":
+	main()
