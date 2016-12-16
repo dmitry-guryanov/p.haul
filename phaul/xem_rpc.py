@@ -70,8 +70,9 @@ class _rpc_stop_fd(object):
 
 
 class _rpc_server_manager(object):
-	def __init__(self, srv_class, connection):
+	def __init__(self, connection, srv_class, *srv_args):
 		self._srv_class = srv_class
+		self._srv_args = srv_args
 		self._connection = connection
 		self._poll_list = []
 		self._alive = True
@@ -85,7 +86,7 @@ class _rpc_server_manager(object):
 		self._poll_list.remove(item)
 
 	def make_master(self):
-		return self._srv_class(self._connection)
+		return self._srv_class(self._connection, *self._srv_args)
 
 	def stop(self):
 		self._alive = False
@@ -103,9 +104,9 @@ class _rpc_server_manager(object):
 
 
 class rpc_threaded_srv(threading.Thread):
-	def __init__(self, srv_class, connection):
+	def __init__(self, connection, srv_class, *srv_args):
 		threading.Thread.__init__(self)
-		self._mgr = _rpc_server_manager(srv_class, connection)
+		self._mgr = _rpc_server_manager(connection, srv_class, *srv_args)
 		self._stop_fd = None
 
 	def run(self):

@@ -146,4 +146,8 @@ def parse_service_args():
 		"--log-file",
 		help="Write logging messages to specified file")
 
+	parser.add_argument(
+		"--override-id",
+		help="ID at destination")
+
 	return parser.parse_args()

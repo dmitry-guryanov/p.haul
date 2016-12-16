@@ -39,7 +39,8 @@ def main():
 	# Establish connection
 	connection = phaul.connection.establish(args.fdrpc, args.fdmem, args.fdfs)
 
-	t = phaul.xem_rpc.rpc_threaded_srv(phaul.service.phaul_service, connection)
+	t = phaul.xem_rpc.rpc_threaded_srv(connection, phaul.service.phaul_service,
+									args.override_id)
 
 	# FIXME: Setup stop handlers
 	stop_fd = t.init_stop_fd()

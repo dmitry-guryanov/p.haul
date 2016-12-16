@@ -13,7 +13,7 @@ import iters
 
 
 class phaul_service(object):
-	def __init__(self, connection):
+	def __init__(self, connection, override_id):
 		self.connection = connection
 		self.htype = None
 		self.__fs_receiver = None
@@ -22,6 +22,7 @@ class phaul_service(object):
 		self.__mode = iters.MIGRATION_MODE_LIVE
 		self.dump_iter_index = 0
 		self.restored = False
+		self._override_id = override_id
 
 	def on_connect(self):
 		logging.info("Connected")
@@ -50,6 +51,11 @@ class phaul_service(object):
 
 		logging.info("Setting up service side %s", htype_id)
 		self.__mode = mode
+
+		if self._override_id:
+			logging.info("Using id %s instead of %s" %
+						(self._override_id, htype_id[1]))
+			htype_id = (htype_id[0], self._override_id)
 
 		self.htype = htype.get_dst(htype_id)
 
